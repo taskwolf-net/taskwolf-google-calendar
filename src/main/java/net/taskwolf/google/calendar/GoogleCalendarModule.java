@@ -1,6 +1,7 @@
 package net.taskwolf.google.calendar;
 
 import com.google.common.collect.Lists;
+import com.google.inject.Injector;
 import net.taskwolf.core.CoreModule;
 import net.taskwolf.core.action.ActionFactory;
 import net.taskwolf.core.action.ActionInformation;
@@ -11,6 +12,7 @@ import net.taskwolf.core.module.ModuleInformation;
 import net.taskwolf.core.module.ModuleLoadPriority;
 import net.taskwolf.core.trigger.TriggerFactory;
 import net.taskwolf.core.trigger.TriggerInformation;
+import net.taskwolf.google.GoogleInjectionModule;
 
 import java.util.List;
 
@@ -21,13 +23,13 @@ public final class GoogleCalendarModule extends Module {
   private TriggerFactory triggerFactory;
   private ActionFactory actionFactory;
 
-  public GoogleCalendarModule(CoreModule coreModule) {
-    super(coreModule);
+  public GoogleCalendarModule(Injector injector) {
+    super(injector.createChildInjector(GoogleInjectionModule.create()));
   }
 
   @Override
   public void enable() throws Exception {
-    log = coreModule().log().subLog("Google Calendar");
+    log = injector().getInstance(Log.class).subLog("Google Calendar");
   }
 
   @Override
