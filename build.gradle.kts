@@ -30,7 +30,7 @@ dependencies {
 
   compileOnly("com.google.inject:guice:7.0.0")
 
-  compileOnly("com.google.guava:guava:32.1.3-jre")
+  compileOnly("com.google.guava:guava:33.0.0-jre")
 
   compileOnly("org.projectlombok:lombok:1.18.30")
   annotationProcessor("org.projectlombok:lombok:1.18.30")
@@ -40,9 +40,9 @@ dependencies {
   compileOnly("com.datastax.oss:java-driver-core:4.17.0")
 
   compileOnly("org.json:json:20231013")
-  compileOnly("commons-io:commons-io:2.15.0")
+  compileOnly("commons-io:commons-io:2.15.1")
 
-  compileOnly("org.springframework.boot:spring-boot-starter-web:3.1.5")
+  compileOnly("org.springframework.boot:spring-boot-starter-web:3.2.1")
 
   compileOnly("io.jsonwebtoken:jjwt:0.12.3")
 }
