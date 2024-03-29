@@ -1,4 +1,4 @@
-# Taskwolf - Core
+# Taskwolf - Google Calendar
 
 This module was created to make the Google Calendar application available to taskwolf users.
 
