@@ -20,6 +20,7 @@ public final class EventEndTrigger extends EventTrigger {
       .withIdentifier("google-calendar-event-end-trigger")
       .withInputVariable(InputComponentVariable.createSelect("google.calendar.trigger.event.end.input.account.name",
         "googleAccount", "google.calendar.trigger.event.end.input.account.description", googleAccountSelect))
+      .withOutputVariable(OutputComponentVariable.create("google.calendar.trigger.event.end.output.event.id", "eventId"))
       .withOutputVariable(OutputComponentVariable.create("google.calendar.trigger.event.end.output.event.name", "eventName"))
       .withOutputVariable(OutputComponentVariable.create("google.calendar.trigger.event.end.output.event.description", "eventDescription"))
       .withOutputVariable(OutputComponentVariable.create("google.calendar.trigger.event.end.output.event.location", "eventLocation"))

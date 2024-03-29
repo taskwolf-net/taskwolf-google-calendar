@@ -178,6 +178,7 @@ public final class EventCheckSchedule {
     var description = event.getDescription() == null ? "" : event.getDescription();
     var location = event.getLocation() == null ? "" : event.getLocation();
     var information = Maps.<String, Object>newHashMap();
+    information.put("eventId", event.getId());
     information.put("eventName", summary);
     information.put("eventDescription", description);
     information.put("eventLocation", location);

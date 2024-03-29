@@ -20,6 +20,7 @@ public final class EventCancelTrigger extends EventTrigger {
       .withIdentifier("google-calendar-event-cancel-trigger")
       .withInputVariable(InputComponentVariable.createSelect("google.calendar.trigger.event.cancel.input.account.name",
         "googleAccount", "google.calendar.trigger.event.cancel.input.account.description", googleAccountSelect))
+      .withOutputVariable(OutputComponentVariable.create("google.calendar.trigger.event.cancel.output.event.id", "eventId"))
       .withOutputVariable(OutputComponentVariable.create("google.calendar.trigger.event.cancel.output.event.name", "eventName"))
       .withOutputVariable(OutputComponentVariable.create("google.calendar.trigger.event.cancel.output.event.description", "eventDescription"))
       .withOutputVariable(OutputComponentVariable.create("google.calendar.trigger.event.cancel.output.event.location", "eventLocation"))

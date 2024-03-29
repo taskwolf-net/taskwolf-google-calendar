@@ -20,6 +20,7 @@ public final class EventCreateTrigger extends EventTrigger {
       .withIdentifier("google-calendar-event-create-trigger")
       .withInputVariable(InputComponentVariable.createSelect("google.calendar.trigger.event.create.input.account.name",
         "googleAccount", "google.calendar.trigger.event.create.input.account.description", googleAccountSelect))
+      .withOutputVariable(OutputComponentVariable.create("google.calendar.trigger.event.create.output.event.id", "eventId"))
       .withOutputVariable(OutputComponentVariable.create("google.calendar.trigger.event.create.output.event.name", "eventName"))
       .withOutputVariable(OutputComponentVariable.create("google.calendar.trigger.event.create.output.event.description", "eventDescription"))
       .withOutputVariable(OutputComponentVariable.create("google.calendar.trigger.event.create.output.event.location", "eventLocation"))
