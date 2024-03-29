@@ -47,6 +47,7 @@ public final class EventCreateAction implements Action {
         "eventStartTime", "google.calendar.action.event.create.input.event.start.time.description", InputComponentDataType.TEXT))
       .withInputVariable(InputComponentVariable.createRequired("google.calendar.action.event.create.input.event.end.time.name",
         "eventEndTime", "google.calendar.action.event.create.input.event.end.time.description", InputComponentDataType.TEXT))
+      .withOutputVariable(OutputComponentVariable.create("google.calendar.action.event.create.output.event.id", "eventId"))
       .withOutputVariable(OutputComponentVariable.create("google.calendar.action.event.create.output.event.title", "eventTitle"))
       .withOutputVariable(OutputComponentVariable.create("google.calendar.action.event.create.output.event.description", "eventDescription"))
       .withOutputVariable(OutputComponentVariable.create("google.calendar.action.event.create.output.event.location", "eventLocation"))
@@ -90,14 +91,16 @@ public final class EventCreateAction implements Action {
     if (eventEndDateTime.isEmpty()) {
       return ActionResult.futureFailure("google.calendar.action.event.create.failure.wrong.end.time.format");
     }
+    var futureResponse = new CompletableFuture<ActionResult>();
     googleAccountDatabaseTable.findAccount(googleAccount).thenAccept(account ->
-      insertEvent(GoogleCredential.of(configuration.clientId(),
-          configuration.clientSecret(), account).buildCredential(),
-        eventStartDateTime.get(), eventEndDateTime.get()));
-    return ActionResult.futureSuccess(buildInformation());
+      futureResponse.complete(ActionResult.success(buildInformation(
+        insertEvent(GoogleCredential.of(configuration.clientId(),
+            configuration.clientSecret(), account).buildCredential(),
+          eventStartDateTime.get(), eventEndDateTime.get())))));
+    return futureResponse;
   }
 
-  private void insertEvent(
+  private Event insertEvent(
     Credential credential, DateTime eventStartDateTime,
     DateTime eventEndDateTime
   ) {
@@ -107,9 +110,10 @@ public final class EventCreateAction implements Action {
         .setApplicationName("Taskwolf")
         .build();
       var event = createEvent(eventStartDateTime, eventEndDateTime);
-      service.events().insert("primary", event).execute();
+      return service.events().insert("primary", event).execute();
     } catch (Exception exception) {
       exception.printStackTrace();
+      return null;
     }
   }
 
@@ -127,8 +131,12 @@ public final class EventCreateAction implements Action {
     return event;
   }
 
-  private Map<String, Object> buildInformation() {
+  private Map<String, Object> buildInformation(Event event) {
+    if (event == null) {
+      return Maps.newHashMap();
+    }
     var information = Maps.<String, Object>newHashMap();
+    information.put("eventId", event.getId());
     information.put("eventTitle", eventTitle);
     information.put("eventDescription", eventDescription);
     information.put("eventLocation", eventLocation);

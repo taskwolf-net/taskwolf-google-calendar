@@ -19,6 +19,10 @@ public final class GoogleCalendarActionFactory implements ActionFactory {
       return EventCreateAction.of(googleConfiguration,
         googleAccountDatabaseTable, json);
     }
+    if (type.equals("google-calendar-event-cancel-action")) {
+      return EventCancelAction.of(googleConfiguration,
+        googleAccountDatabaseTable, json);
+    }
     return null;
   }
 }

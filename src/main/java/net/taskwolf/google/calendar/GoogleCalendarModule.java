@@ -18,6 +18,7 @@ import net.taskwolf.google.GoogleAccountLinkRepository;
 import net.taskwolf.google.GoogleConfiguration;
 import net.taskwolf.google.account.GoogleAccountDatabaseTable;
 import net.taskwolf.google.account.GoogleUserAccountDatabaseTable;
+import net.taskwolf.google.calendar.action.EventCancelAction;
 import net.taskwolf.google.calendar.action.EventCreateAction;
 import net.taskwolf.google.calendar.action.GoogleCalendarActionFactory;
 import net.taskwolf.google.calendar.trigger.*;
@@ -103,6 +104,7 @@ public final class GoogleCalendarModule extends Module {
 
   @Override
   public List<ActionInformation> actionInformation() {
-    return Lists.newArrayList(EventCreateAction.information(googleAccountSelect));
+    return Lists.newArrayList(EventCreateAction.information(googleAccountSelect),
+      EventCancelAction.information(googleAccountSelect));
   }
 }
