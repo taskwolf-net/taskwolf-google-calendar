@@ -30,6 +30,7 @@ public final class GoogleCalendarInjectionModule extends AbstractModule {
     var googleUserAccountDatabaseTable = GoogleUserAccountDatabaseTable.create(
       connection, keyspace, "google_calendar_user_account");
     googleUserAccountDatabaseTable.createIfNotExists();
+    googleUserAccountDatabaseTable.createIndexIfNotExists("accounts");
     return googleUserAccountDatabaseTable;
   }
 
