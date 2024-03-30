@@ -182,6 +182,9 @@ public final class EventCheckSchedule {
     var now = System.currentTimeMillis();
     var threshold = INBOX_CHECK_INTERVAL * 1000;
     for (var event : events) {
+      if (event.getStatus().equals("cancelled")) {
+        continue;
+      }
       var timeDifference  = event.getStart().getDateTime().getValue() - now;
       if (timeDifference > 0 && timeDifference <= threshold) {
         executeEventTrigger(triggerId, event);
@@ -195,6 +198,9 @@ public final class EventCheckSchedule {
     var now = System.currentTimeMillis();
     var threshold = INBOX_CHECK_INTERVAL * 1000;
     for (var event : events) {
+      if (event.getStatus().equals("cancelled")) {
+        continue;
+      }
       var timeDifference  = event.getEnd().getDateTime().getValue() - now;
       if (timeDifference > 0 && timeDifference <= threshold) {
         executeEventTrigger(triggerId, event);
