@@ -52,7 +52,8 @@ public final class GoogleCalendarModule extends Module {
     actionFactory = GoogleCalendarActionFactory.create(googleConfiguration,
       googleAccountDatabaseTable);
     accountLink = GoogleCalendarAccountLink.create(googleConfiguration,
-      googleAccountDatabaseTable, googleUserAccountDatabaseTable);
+      googleAccountDatabaseTable, googleUserAccountDatabaseTable,
+      injector().getInstance(GoogleCalendarEventDatabaseTable.class));
     injector().getInstance(GoogleAccountLinkRepository.class)
       .registerGoogleAccountLink(accountLink);
     googleAccountSelect = GoogleAccountSelect.create(googleAccountDatabaseTable,

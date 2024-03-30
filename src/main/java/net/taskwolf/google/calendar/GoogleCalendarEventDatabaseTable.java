@@ -30,33 +30,7 @@ public final class GoogleCalendarEventDatabaseTable extends DatabaseTable {
     insert(DatabaseRow.of(accountId, eventIds));
   }
 
-  public void addCalendarEvent(String accountId, String eventId) {
-    selectRow(DatabaseCell.create(accountId)).thenAccept(row ->
-      addCalendarEvent(accountId, eventId, row));
-  }
-
-  private void addCalendarEvent(String accountId, String eventId, DatabaseRow row) {
-    var eventIds = row.findCell(1).<String>listValue();
-    eventIds.add(eventId);
-    updateCalendarEvents(accountId, eventIds);
-  }
-
-  public void removeCalendarEvent(String accountId, String eventId) {
-    selectRow(DatabaseCell.create(accountId)).thenAccept(row ->
-      removeCalendarEvent(accountId, eventId, row));
-  }
-
-  private void removeCalendarEvent(String accountId, String eventId, DatabaseRow row) {
-    var eventIds = row.findCell(1).<String>listValue();
-    if (eventIds.size() == 1) {
-      deleteCalendarEvents(accountId);
-      return;
-    }
-    eventIds.remove(eventId);
-    updateCalendarEvents(accountId, eventIds);
-  }
-
-  private void updateCalendarEvents(String accountId, List<String> eventIds) {
+  public void updateCalendarEvents(String accountId, List<String> eventIds) {
     update(DatabaseCell.create(accountId), DatabaseRow.of(accountId, eventIds));
   }
 

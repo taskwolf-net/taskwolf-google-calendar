@@ -83,21 +83,12 @@ public final class EventCheckSchedule {
     for (var googleId : entries.keySet()) {
       var accountTriggers = entries.get(googleId);
       googleAccountDatabaseTable.findAccount(googleId)
-        .thenApply(this::createCalendarService).thenAccept(service ->
-          processEventTriggers(listCalendarEvents(service), accountTriggers));
-    }
-  }
-
-  private List<Event> listCalendarEvents(Calendar service) {
-    var now = new DateTime(System.currentTimeMillis());
-    try {
-      return service.events().list("primary")
-        .setTimeMin(now)
-        .setSingleEvents(true)
-        .execute().getItems();
-    } catch (Exception exception) {
-      exception.printStackTrace();
-      return Lists.newArrayList();
+        .thenApply(this::createCalendarService).thenApply(this::listCalendarEvents)
+        .thenAccept(currentEvents -> googleCalendarEventDatabaseTable
+          .findCalendarEvents(googleId).thenAccept(previousEvents ->
+            processEventTriggers(googleId, currentEvents, previousEvents,
+              findCreatedEvents(currentEvents, previousEvents),
+              findCanceledEvents(currentEvents, previousEvents), accountTriggers)));
     }
   }
 
@@ -114,20 +105,75 @@ public final class EventCheckSchedule {
     }
   }
 
-  private void processEventTriggers(
-    List<Event> events, Collection<Map.Entry<UUID, EventTrigger>> triggers
+  private List<Event> listCalendarEvents(Calendar service) {
+    var now = new DateTime(System.currentTimeMillis());
+    try {
+      return service.events().list("primary")
+        .setTimeMin(now)
+        .setSingleEvents(true)
+        .setShowDeleted(true)
+        .execute().getItems();
+    } catch (Exception exception) {
+      exception.printStackTrace();
+      return Lists.newArrayList();
+    }
+  }
+
+  private List<Event> findCreatedEvents(
+    List<Event> currentEvents, List<String> previousEvents
   ) {
-    for (var entry : triggers) {
-      if (entry.getValue() instanceof EventStartTrigger eventStartTrigger) {
-        executeEventStartTrigger(entry.getKey(), eventStartTrigger, events);
-      } else if (entry.getValue() instanceof EventEndTrigger eventEndTrigger) {
-        executeEventEndTrigger(entry.getKey(), eventEndTrigger, events);
-      } else if (entry.getValue() instanceof EventCreateTrigger eventCreateTrigger) {
-        executeEventCreateTrigger(entry.getKey(), eventCreateTrigger, events);
-      } else if (entry.getValue() instanceof EventCancelTrigger eventCancelTrigger) {
-        executeEventCancelTrigger(entry.getKey(), eventCancelTrigger, events);
+    var createdEvents = Lists.<Event>newArrayList();
+    for (var event : currentEvents) {
+      var isCreated = previousEvents.stream().noneMatch(previousEvent ->
+        previousEvent.equals(event.getId())) && !event.getStatus().equals("cancelled");
+      if (isCreated) {
+        createdEvents.add(event);
       }
     }
+    return createdEvents;
+  }
+
+  private List<Event> findCanceledEvents(
+    List<Event> currentEvents, List<String> previousEvents
+  ) {
+    var canceledEvents = Lists.<Event>newArrayList();
+    for (var event : currentEvents) {
+      var isCanceled = previousEvents.stream().anyMatch(previousEvent ->
+        previousEvent.equals(event.getId())) && event.getStatus().equals("cancelled");
+      if (isCanceled) {
+        canceledEvents.add(event);
+      }
+    }
+    return canceledEvents;
+  }
+
+  private void processEventTriggers(
+    String accountId, List<Event> currentEvents, List<String> previousEvents,
+    List<Event> createdEvents, List<Event> canceledEvents,
+    Collection<Map.Entry<UUID, EventTrigger>> triggers
+  ) {
+    updateEventDatabaseEntries(accountId, previousEvents, createdEvents,
+      canceledEvents);
+    for (var entry : triggers) {
+      if (entry.getValue() instanceof EventStartTrigger eventStartTrigger) {
+        executeEventStartTrigger(entry.getKey(), eventStartTrigger, currentEvents);
+      } else if (entry.getValue() instanceof EventEndTrigger eventEndTrigger) {
+        executeEventEndTrigger(entry.getKey(), eventEndTrigger, currentEvents);
+      } else if (entry.getValue() instanceof EventCreateTrigger eventCreateTrigger) {
+        executeEventCreateTrigger(entry.getKey(), eventCreateTrigger, createdEvents);
+      } else if (entry.getValue() instanceof EventCancelTrigger eventCancelTrigger) {
+        executeEventCancelTrigger(entry.getKey(), eventCancelTrigger, canceledEvents);
+      }
+    }
+  }
+
+  private void updateEventDatabaseEntries(
+    String accountId, List<String> previousEvents, List<Event> createdEvents,
+    List<Event> canceledEvents
+  ) {
+    previousEvents.addAll(createdEvents.stream().map(Event::getId).toList());
+    previousEvents.removeAll(canceledEvents.stream().map(Event::getId).toList());
+    googleCalendarEventDatabaseTable.updateCalendarEvents(accountId, previousEvents);
   }
 
   private void executeEventStartTrigger(
@@ -157,15 +203,21 @@ public final class EventCheckSchedule {
   }
 
   private void executeEventCreateTrigger(
-    UUID triggerId, EventCreateTrigger eventCreateTrigger, List<Event> events
+    UUID triggerId, EventCreateTrigger eventCreateTrigger,
+    List<Event> createdEvents
   ) {
-
+    for (var event : createdEvents) {
+      executeEventTrigger(triggerId, event);
+    }
   }
 
   private void executeEventCancelTrigger(
-    UUID triggerId, EventCancelTrigger eventCancelTrigger, List<Event> events
+    UUID triggerId, EventCancelTrigger eventCancelTrigger,
+    List<Event> canceledEvents
   ) {
-
+    for (var event : canceledEvents) {
+      executeEventTrigger(triggerId, event);
+    }
   }
 
   private void executeEventTrigger(UUID triggerId, Event event) {
