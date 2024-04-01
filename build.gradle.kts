@@ -46,7 +46,7 @@ dependencies {
 
   compileOnly("io.jsonwebtoken:jjwt:0.12.5")
 
-  implementation("com.google.apis:google-api-services-calendar:v3-rev20220715-2.0.0")
+  implementation("com.google.apis:google-api-services-calendar:v3-rev20240111-2.0.0")
 }
 
 tasks.test {
