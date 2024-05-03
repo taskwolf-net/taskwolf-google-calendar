@@ -1,4 +1,4 @@
-package net.taskwolf.google.calendar.action;
+package net.taskwolf.google.calendar.action.create;
 
 import com.datastax.oss.driver.shaded.guava.common.collect.Maps;
 import com.google.api.client.auth.oauth2.Credential;
@@ -9,63 +9,19 @@ import com.google.api.services.calendar.Calendar;
 import com.google.api.services.calendar.model.Event;
 import com.google.api.services.calendar.model.EventDateTime;
 import lombok.AllArgsConstructor;
-import net.taskwolf.core.action.Action;
-import net.taskwolf.core.action.ActionInformation;
+import net.taskwolf.core.action.ActionExecutor;
 import net.taskwolf.core.action.ActionResult;
-import net.taskwolf.core.workflow.component.input.InputComponentDataType;
-import net.taskwolf.core.workflow.component.input.InputComponentSelect;
-import net.taskwolf.core.workflow.component.input.InputComponentVariable;
-import net.taskwolf.core.workflow.component.output.OutputComponentVariable;
 import net.taskwolf.core.workflow.placeholder.PlaceholderDissolve;
 import net.taskwolf.google.GoogleConfiguration;
 import net.taskwolf.google.account.GoogleAccountDatabaseTable;
 import net.taskwolf.google.account.GoogleCredential;
 import net.taskwolf.google.calendar.GoogleCalendarEventTime;
-import org.json.JSONObject;
 
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 
 @AllArgsConstructor(staticName = "create")
-public final class EventCreateAction implements Action {
-  public static ActionInformation information(
-    InputComponentSelect googleAccountSelect
-  ) {
-    return ActionInformation.builder()
-      .withName("google.calendar.action.event.create.name")
-      .withDescription("google.calendar.action.event.create.description")
-      .withIdentifier("google-calendar-event-create-action")
-      .withInputVariable(InputComponentVariable.createSelect("google.calendar.action.event.create.input.account.name",
-        "googleAccount", "google.calendar.action.event.create.input.account.description", googleAccountSelect))
-      .withInputVariable(InputComponentVariable.createRequired("google.calendar.action.event.create.input.event.title.name",
-        "eventTitle", "google.calendar.action.event.create.input.event.title.description", InputComponentDataType.TEXT))
-      .withInputVariable(InputComponentVariable.createRequired("google.calendar.action.event.create.input.event.description.name",
-        "eventDescription", "google.calendar.action.event.create.input.event.description.description", InputComponentDataType.TEXT))
-      .withInputVariable(InputComponentVariable.createRequired("google.calendar.action.event.create.input.event.location.name",
-        "eventLocation", "google.calendar.action.event.create.input.event.location.description", InputComponentDataType.TEXT))
-      .withInputVariable(InputComponentVariable.createRequired("google.calendar.action.event.create.input.event.start.time.name",
-        "eventStartTime", "google.calendar.action.event.create.input.event.start.time.description", InputComponentDataType.TEXT))
-      .withInputVariable(InputComponentVariable.createRequired("google.calendar.action.event.create.input.event.end.time.name",
-        "eventEndTime", "google.calendar.action.event.create.input.event.end.time.description", InputComponentDataType.TEXT))
-      .withOutputVariable(OutputComponentVariable.create("google.calendar.action.event.create.output.event.id", "eventId"))
-      .withOutputVariable(OutputComponentVariable.create("google.calendar.action.event.create.output.event.title", "eventTitle"))
-      .withOutputVariable(OutputComponentVariable.create("google.calendar.action.event.create.output.event.description", "eventDescription"))
-      .withOutputVariable(OutputComponentVariable.create("google.calendar.action.event.create.output.event.location", "eventLocation"))
-      .withOutputVariable(OutputComponentVariable.create("google.calendar.action.event.create.output.event.start.time", "eventStartTime"))
-      .withOutputVariable(OutputComponentVariable.create("google.calendar.action.event.create.output.event.end.time", "eventEndTime"))
-      .build();
-  }
-
-  public static EventCreateAction of(
-    GoogleConfiguration configuration,
-    GoogleAccountDatabaseTable googleAccountDatabaseTable, JSONObject content
-  ) {
-    return create(configuration, googleAccountDatabaseTable,
-      content.getString("googleAccount"), content.getString("eventTitle"),
-      content.getString("eventDescription"), content.getString("eventLocation"),
-      content.getString("eventStartTime"), content.getString("eventEndTime"));
-  }
-
+public final class EventCreateActionExecutor implements ActionExecutor {
   private final GoogleConfiguration configuration;
   private final GoogleAccountDatabaseTable googleAccountDatabaseTable;
   private final String googleAccount;

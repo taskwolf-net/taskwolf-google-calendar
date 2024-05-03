@@ -1,37 +1,35 @@
 package net.taskwolf.google.calendar;
 
-import com.google.common.collect.Lists;
 import com.google.inject.Injector;
 import net.taskwolf.core.CoreModule;
 import net.taskwolf.core.account.AccountLink;
-import net.taskwolf.core.action.ActionFactory;
-import net.taskwolf.core.action.ActionInformation;
+import net.taskwolf.core.action.ActionRepository;
+import net.taskwolf.core.database.DatabaseConnection;
+import net.taskwolf.core.database.DatabaseKeyspace;
 import net.taskwolf.core.log.Log;
 import net.taskwolf.core.module.Module;
 import net.taskwolf.core.module.ModuleDescription;
 import net.taskwolf.core.module.ModuleInformation;
 import net.taskwolf.core.module.ModuleLoadPriority;
-import net.taskwolf.core.trigger.TriggerFactory;
-import net.taskwolf.core.trigger.TriggerInformation;
+import net.taskwolf.core.trigger.TriggerRepository;
 import net.taskwolf.core.workflow.component.input.InputComponentSelect;
 import net.taskwolf.google.GoogleAccountLinkRepository;
 import net.taskwolf.google.GoogleConfiguration;
 import net.taskwolf.google.account.GoogleAccountDatabaseTable;
 import net.taskwolf.google.account.GoogleUserAccountDatabaseTable;
-import net.taskwolf.google.calendar.action.EventCancelAction;
-import net.taskwolf.google.calendar.action.EventCreateAction;
-import net.taskwolf.google.calendar.action.GoogleCalendarActionFactory;
-import net.taskwolf.google.calendar.trigger.*;
+import net.taskwolf.google.calendar.action.cancel.EventCancelAction;
+import net.taskwolf.google.calendar.action.create.EventCreateAction;
+import net.taskwolf.google.calendar.trigger.EventCheckSchedule;
+import net.taskwolf.google.calendar.trigger.cancel.EventCancelTrigger;
+import net.taskwolf.google.calendar.trigger.create.EventCreateTrigger;
+import net.taskwolf.google.calendar.trigger.end.EventEndTrigger;
+import net.taskwolf.google.calendar.trigger.start.EventStartTrigger;
 import net.taskwolf.google.select.GoogleAccountSelect;
-
-import java.util.List;
 
 @ModuleDescription(name = "google-calendar", version = "1.0.0-SNAPSHOT",
   priority = ModuleLoadPriority.NEUTRAL)
 public final class GoogleCalendarModule extends Module {
   private Log log;
-  private TriggerFactory triggerFactory;
-  private ActionFactory actionFactory;
   private GoogleCalendarAccountLink accountLink;
   private InputComponentSelect googleAccountSelect;
   private EventCheckSchedule eventCheckSchedule;
@@ -48,9 +46,6 @@ public final class GoogleCalendarModule extends Module {
       GoogleAccountDatabaseTable.class);
     var googleUserAccountDatabaseTable = injector().getInstance(
       GoogleUserAccountDatabaseTable.class);
-    triggerFactory = GoogleCalendarTriggerFactory.create();
-    actionFactory = GoogleCalendarActionFactory.create(googleConfiguration,
-      googleAccountDatabaseTable);
     accountLink = GoogleCalendarAccountLink.create(googleConfiguration,
       googleAccountDatabaseTable, googleUserAccountDatabaseTable,
       injector().getInstance(GoogleCalendarEventDatabaseTable.class));
@@ -62,8 +57,9 @@ public final class GoogleCalendarModule extends Module {
   }
 
   private void startEventCheckSchedule() throws Exception {
-    eventCheckSchedule = EventCheckSchedule.create(triggerFactory,
-      injector().getInstance(CoreModule.class), GoogleConfiguration.createAndLoad(),
+    eventCheckSchedule = EventCheckSchedule.create(
+      injector().getInstance(CoreModule.class),
+      GoogleConfiguration.createAndLoad(),
       injector().getInstance(GoogleAccountDatabaseTable.class),
       injector().getInstance(GoogleCalendarEventDatabaseTable.class));
     eventCheckSchedule.start();
@@ -72,16 +68,6 @@ public final class GoogleCalendarModule extends Module {
   @Override
   public void disable() {
     eventCheckSchedule.stop();
-  }
-
-  @Override
-  public TriggerFactory triggerFactory() {
-    return triggerFactory;
-  }
-
-  @Override
-  public ActionFactory actionFactory() {
-    return actionFactory;
   }
 
   @Override
@@ -96,16 +82,34 @@ public final class GoogleCalendarModule extends Module {
   }
 
   @Override
-  public List<TriggerInformation> triggerInformation() {
-    return Lists.newArrayList(EventStartTrigger.information(googleAccountSelect),
-      EventEndTrigger.information(googleAccountSelect),
-      EventCreateTrigger.information(googleAccountSelect),
-      EventCancelTrigger.information(googleAccountSelect));
+  public TriggerRepository triggerRepository() {
+    var databaseConnection = injector().getInstance(DatabaseConnection.class);
+    var databaseKeyspace = injector().getInstance(DatabaseKeyspace.class);
+    var repository = TriggerRepository.create();
+    repository.registerTrigger(EventStartTrigger.create(googleAccountSelect,
+      databaseConnection, databaseKeyspace));
+    repository.registerTrigger(EventEndTrigger.create(googleAccountSelect,
+      databaseConnection, databaseKeyspace));
+    repository.registerTrigger(EventCreateTrigger.create(googleAccountSelect,
+      databaseConnection, databaseKeyspace));
+    repository.registerTrigger(EventCancelTrigger.create(googleAccountSelect,
+      databaseConnection, databaseKeyspace));
+    return repository;
   }
 
   @Override
-  public List<ActionInformation> actionInformation() {
-    return Lists.newArrayList(EventCreateAction.information(googleAccountSelect),
-      EventCancelAction.information(googleAccountSelect));
+  public ActionRepository actionRepository() {
+    var databaseConnection = injector().getInstance(DatabaseConnection.class);
+    var databaseKeyspace = injector().getInstance(DatabaseKeyspace.class);
+    var googleConfiguration = injector().getInstance(GoogleConfiguration.class);
+    var accountDatabaseTable = injector().getInstance(GoogleAccountDatabaseTable.class);
+    var repository = ActionRepository.create();
+    repository.registerAction(EventCreateAction.create(googleConfiguration,
+      accountDatabaseTable, googleAccountSelect, databaseConnection,
+      databaseKeyspace));
+    repository.registerAction(EventCancelAction.create(googleConfiguration,
+      accountDatabaseTable, googleAccountSelect, databaseConnection,
+      databaseKeyspace));
+    return repository;
   }
 }

@@ -1,4 +1,4 @@
-package net.taskwolf.google.calendar.action;
+package net.taskwolf.google.calendar.action.cancel;
 
 import com.datastax.oss.driver.shaded.guava.common.collect.Maps;
 import com.google.api.client.auth.oauth2.Credential;
@@ -7,53 +7,19 @@ import com.google.api.client.json.gson.GsonFactory;
 import com.google.api.services.calendar.Calendar;
 import com.google.api.services.calendar.model.Event;
 import lombok.AllArgsConstructor;
-import net.taskwolf.core.action.Action;
-import net.taskwolf.core.action.ActionInformation;
+import net.taskwolf.core.action.ActionExecutor;
 import net.taskwolf.core.action.ActionResult;
-import net.taskwolf.core.workflow.component.input.InputComponentDataType;
-import net.taskwolf.core.workflow.component.input.InputComponentSelect;
-import net.taskwolf.core.workflow.component.input.InputComponentVariable;
-import net.taskwolf.core.workflow.component.output.OutputComponentVariable;
 import net.taskwolf.core.workflow.placeholder.PlaceholderDissolve;
 import net.taskwolf.google.GoogleConfiguration;
 import net.taskwolf.google.account.GoogleAccountDatabaseTable;
 import net.taskwolf.google.account.GoogleCredential;
 import net.taskwolf.google.calendar.GoogleCalendarEventTime;
-import org.json.JSONObject;
 
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 
 @AllArgsConstructor(staticName = "create")
-public final class EventCancelAction implements Action {
-  public static ActionInformation information(
-    InputComponentSelect googleAccountSelect
-  ) {
-    return ActionInformation.builder()
-      .withName("google.calendar.action.event.cancel.name")
-      .withDescription("google.calendar.action.event.cancel.description")
-      .withIdentifier("google-calendar-event-cancel-action")
-      .withInputVariable(InputComponentVariable.createSelect("google.calendar.action.event.cancel.input.account.name",
-        "googleAccount", "google.calendar.action.event.cancel.input.account.description", googleAccountSelect))
-      .withInputVariable(InputComponentVariable.createRequired("google.calendar.action.event.cancel.input.event.id.name",
-        "eventId", "google.calendar.action.event.cancel.input.event.id.description", InputComponentDataType.TEXT))
-      .withOutputVariable(OutputComponentVariable.create("google.calendar.action.event.cancel.output.event.id", "eventId"))
-      .withOutputVariable(OutputComponentVariable.create("google.calendar.action.event.cancel.output.event.title", "eventTitle"))
-      .withOutputVariable(OutputComponentVariable.create("google.calendar.action.event.cancel.output.event.description", "eventDescription"))
-      .withOutputVariable(OutputComponentVariable.create("google.calendar.action.event.cancel.output.event.location", "eventLocation"))
-      .withOutputVariable(OutputComponentVariable.create("google.calendar.action.event.cancel.output.event.start.time", "eventStartTime"))
-      .withOutputVariable(OutputComponentVariable.create("google.calendar.action.event.cancel.output.event.end.time", "eventEndTime"))
-      .build();
-  }
-
-  public static EventCancelAction of(
-    GoogleConfiguration configuration,
-    GoogleAccountDatabaseTable googleAccountDatabaseTable, JSONObject content
-  ) {
-    return create(configuration, googleAccountDatabaseTable,
-      content.getString("googleAccount"), content.getString("eventId"));
-  }
-
+public final class EventCancelActionExecutor implements ActionExecutor {
   private final GoogleConfiguration configuration;
   private final GoogleAccountDatabaseTable googleAccountDatabaseTable;
   private final String googleAccount;
@@ -67,7 +33,7 @@ public final class EventCancelAction implements Action {
     googleAccountDatabaseTable.findAccount(googleAccount).thenAccept(account ->
       futureResponse.complete(ActionResult.success(buildInformation(
         cancelEvent(GoogleCredential.of(configuration.clientId(),
-            configuration.clientSecret(), account).buildCredential())))));
+          configuration.clientSecret(), account).buildCredential())))));
     return futureResponse;
   }
 

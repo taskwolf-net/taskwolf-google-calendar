@@ -1,6 +1,5 @@
 package net.taskwolf.google.calendar.trigger;
 
-import com.datastax.oss.driver.shaded.guava.common.collect.Maps;
 import com.google.api.client.googleapis.javanet.GoogleNetHttpTransport;
 import com.google.api.client.json.gson.GsonFactory;
 import com.google.api.client.util.DateTime;
@@ -8,11 +7,12 @@ import com.google.api.services.calendar.Calendar;
 import com.google.api.services.calendar.model.Event;
 import com.google.common.collect.HashMultimap;
 import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
 import com.google.common.collect.Multimap;
 import lombok.RequiredArgsConstructor;
 import net.taskwolf.core.CoreModule;
+import net.taskwolf.core.iterator.AsyncIterator;
 import net.taskwolf.core.trigger.TriggerEntry;
-import net.taskwolf.core.trigger.TriggerFactory;
 import net.taskwolf.google.GoogleConfiguration;
 import net.taskwolf.google.account.GoogleAccount;
 import net.taskwolf.google.account.GoogleAccountDatabaseTable;
@@ -20,15 +20,14 @@ import net.taskwolf.google.account.GoogleCredential;
 import net.taskwolf.google.calendar.GoogleCalendarEventDatabaseTable;
 import net.taskwolf.google.calendar.GoogleCalendarEventTime;
 
-import java.util.*;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.ScheduledFuture;
-import java.util.concurrent.TimeUnit;
+import java.util.Collection;
+import java.util.List;
+import java.util.Map;
+import java.util.UUID;
+import java.util.concurrent.*;
 
 @RequiredArgsConstructor(staticName = "create")
 public final class EventCheckSchedule {
-  private final TriggerFactory triggerFactory;
   private final CoreModule coreModule;
   private final GoogleConfiguration googleConfiguration;
   private final GoogleAccountDatabaseTable googleAccountDatabaseTable;
@@ -46,19 +45,19 @@ public final class EventCheckSchedule {
   }
 
   private void execute() {
-    coreModule.findTriggerEntries("google calendar",
+    coreModule.findAllTriggerEntries("google calendar",
       "google-calendar-event-start-trigger").thenAccept(startEntries ->
-      coreModule.findTriggerEntries("google calendar",
+      coreModule.findAllTriggerEntries("google calendar",
         "google-calendar-event-end-trigger").thenAccept(endEntries ->
-        coreModule.findTriggerEntries("google calendar",
+        coreModule.findAllTriggerEntries("google calendar",
           "google-calendar-event-create-trigger").thenAccept(createEntries ->
-          coreModule.findTriggerEntries("google calendar",
+          coreModule.findAllTriggerEntries("google calendar",
             "google-calendar-event-cancel-trigger").thenAccept(cancelEntries ->
-            readEvents(assignTriggersToAccounts(startEntries, endEntries,
-              createEntries, cancelEntries))))));
+              assignTriggersToAccounts(startEntries, endEntries, createEntries,
+                cancelEntries).thenAccept(this::readEvents)))));
   }
 
-  private Multimap<String, Map.Entry<UUID, EventTrigger>> assignTriggersToAccounts(
+  private CompletableFuture<Multimap<String, TriggerEntry>> assignTriggersToAccounts(
     List<TriggerEntry> startEntries, List<TriggerEntry> endEntries,
     List<TriggerEntry> createEntries, List<TriggerEntry> cancelEntries
     ) {
@@ -67,18 +66,18 @@ public final class EventCheckSchedule {
     entries.addAll(endEntries);
     entries.addAll(createEntries);
     entries.addAll(cancelEntries);
-    var result = HashMultimap.<String, Map.Entry<UUID, EventTrigger>>create();
-    for (var trigger : entries) {
-      var eventTrigger = (EventTrigger) triggerFactory.create(trigger.type(),
-        trigger.content());
-      result.put(eventTrigger.googleAccount(), new AbstractMap.SimpleEntry<>(
-        trigger.id(), eventTrigger));
-    }
-    return result;
+    var futureResponse = new CompletableFuture<Multimap<String, TriggerEntry>>();
+    var result = HashMultimap.<String, TriggerEntry>create();
+    AsyncIterator.execute(entries, entry ->
+      coreModule.findTrigger(entry.module(), entry.type()).get()
+        .findContent(entry.id()).thenAccept(content ->
+          result.put((String) content.get("googleAccount"), entry)),
+      entries.size(), value -> futureResponse.complete(result));
+    return futureResponse;
   }
 
   private void readEvents(
-    Multimap<String, Map.Entry<UUID, EventTrigger>> entries
+    Multimap<String, TriggerEntry> entries
   ) {
     for (var googleId : entries.keySet()) {
       var accountTriggers = entries.get(googleId);
@@ -106,13 +105,25 @@ public final class EventCheckSchedule {
   }
 
   private List<Event> listCalendarEvents(Calendar service) {
-    var now = new DateTime(System.currentTimeMillis());
     try {
-      return service.events().list("primary")
-        .setTimeMin(now)
+      var minTime = new DateTime(System.currentTimeMillis() -
+        2 * INBOX_CHECK_TIME_UNIT.toMillis(INBOX_CHECK_INTERVAL));
+      var maxTime = new DateTime(System.currentTimeMillis() -
+        2 * INBOX_CHECK_TIME_UNIT.toMillis(INBOX_CHECK_INTERVAL));
+      var events = service.events().list("primary")
+        .setTimeMin(minTime)
+        .setTimeMax(maxTime)
         .setSingleEvents(true)
-        .setShowDeleted(true)
+        .setShowDeleted(false)
         .execute().getItems();
+      events.addAll(service.events().list("primary")
+        .setSingleEvents(false)
+        .setShowDeleted(true)
+        .execute().getItems().stream()
+        .filter(event -> events.stream().noneMatch(existingEvent ->
+          event.getId().split("_")[0].equals(existingEvent.getId().split("_")[0])))
+        .toList());
+      return events;
     } catch (Exception exception) {
       exception.printStackTrace();
       return Lists.newArrayList();
@@ -150,19 +161,19 @@ public final class EventCheckSchedule {
   private void processEventTriggers(
     String accountId, List<Event> currentEvents, List<String> previousEvents,
     List<Event> createdEvents, List<Event> canceledEvents,
-    Collection<Map.Entry<UUID, EventTrigger>> triggers
+    Collection<TriggerEntry> triggers
   ) {
     updateEventDatabaseEntries(accountId, previousEvents, createdEvents,
       canceledEvents);
     for (var entry : triggers) {
-      if (entry.getValue() instanceof EventStartTrigger eventStartTrigger) {
-        executeEventStartTrigger(entry.getKey(), eventStartTrigger, currentEvents);
-      } else if (entry.getValue() instanceof EventEndTrigger eventEndTrigger) {
-        executeEventEndTrigger(entry.getKey(), eventEndTrigger, currentEvents);
-      } else if (entry.getValue() instanceof EventCreateTrigger eventCreateTrigger) {
-        executeEventCreateTrigger(entry.getKey(), eventCreateTrigger, createdEvents);
-      } else if (entry.getValue() instanceof EventCancelTrigger eventCancelTrigger) {
-        executeEventCancelTrigger(entry.getKey(), eventCancelTrigger, canceledEvents);
+      if (entry.type().equals("google-calendar-event-start-trigger")) {
+        executeEventStartTrigger(entry.id(), currentEvents);
+      } else if (entry.type().equals("google-calendar-event-end-trigger")) {
+        executeEventEndTrigger(entry.id(), currentEvents);
+      } else if (entry.type().equals("google-calendar-event-create-trigger")) {
+        executeEventCreateTrigger(entry.id(), createdEvents);
+      } else if (entry.type().equals("google-calendar-event-cancel-trigger")) {
+        executeEventCancelTrigger(entry.id(), canceledEvents);
       }
     }
   }
@@ -176,9 +187,7 @@ public final class EventCheckSchedule {
     googleCalendarEventDatabaseTable.updateCalendarEvents(accountId, previousEvents);
   }
 
-  private void executeEventStartTrigger(
-    UUID triggerId, EventStartTrigger eventStartTrigger, List<Event> events
-  ) {
+  private void executeEventStartTrigger(UUID triggerId, List<Event> events) {
     var now = System.currentTimeMillis();
     var threshold = INBOX_CHECK_INTERVAL * 1000;
     for (var event : events) {
@@ -192,9 +201,7 @@ public final class EventCheckSchedule {
     }
   }
 
-  private void executeEventEndTrigger(
-    UUID triggerId, EventEndTrigger eventEndTrigger, List<Event> events
-  ) {
+  private void executeEventEndTrigger(UUID triggerId, List<Event> events) {
     var now = System.currentTimeMillis();
     var threshold = INBOX_CHECK_INTERVAL * 1000;
     for (var event : events) {
@@ -208,19 +215,13 @@ public final class EventCheckSchedule {
     }
   }
 
-  private void executeEventCreateTrigger(
-    UUID triggerId, EventCreateTrigger eventCreateTrigger,
-    List<Event> createdEvents
-  ) {
+  private void executeEventCreateTrigger(UUID triggerId, List<Event> createdEvents) {
     for (var event : createdEvents) {
       executeEventTrigger(triggerId, event);
     }
   }
 
-  private void executeEventCancelTrigger(
-    UUID triggerId, EventCancelTrigger eventCancelTrigger,
-    List<Event> canceledEvents
-  ) {
+  private void executeEventCancelTrigger(UUID triggerId, List<Event> canceledEvents) {
     for (var event : canceledEvents) {
       executeEventTrigger(triggerId, event);
     }

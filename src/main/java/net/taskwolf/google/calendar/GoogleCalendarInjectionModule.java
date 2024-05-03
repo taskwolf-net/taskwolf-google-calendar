@@ -6,11 +6,18 @@ import com.google.inject.Singleton;
 import lombok.RequiredArgsConstructor;
 import net.taskwolf.core.database.DatabaseConnection;
 import net.taskwolf.core.database.DatabaseKeyspace;
+import net.taskwolf.google.GoogleConfiguration;
 import net.taskwolf.google.account.GoogleAccountDatabaseTable;
 import net.taskwolf.google.account.GoogleUserAccountDatabaseTable;
 
 @RequiredArgsConstructor(staticName = "create")
 public final class GoogleCalendarInjectionModule extends AbstractModule {
+  @Provides
+  @Singleton
+  GoogleConfiguration provideGoogleConfiguration() throws Exception {
+    return GoogleConfiguration.createAndLoad();
+  }
+
   @Provides
   @Singleton
   GoogleAccountDatabaseTable provideGoogleAccountDatabaseTable(
