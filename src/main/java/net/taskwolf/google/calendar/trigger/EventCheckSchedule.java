@@ -106,10 +106,8 @@ public final class EventCheckSchedule {
 
   private List<Event> listCalendarEvents(Calendar service) {
     try {
-      var minTime = new DateTime(System.currentTimeMillis() -
-        2 * INBOX_CHECK_TIME_UNIT.toMillis(INBOX_CHECK_INTERVAL));
-      var maxTime = new DateTime(System.currentTimeMillis() -
-        2 * INBOX_CHECK_TIME_UNIT.toMillis(INBOX_CHECK_INTERVAL));
+      var minTime = new DateTime(System.currentTimeMillis() - 1000 * 60 * 60 * 24);
+      var maxTime = new DateTime(System.currentTimeMillis() + 1000 * 60 * 60 * 24);
       var events = service.events().list("primary")
         .setTimeMin(minTime)
         .setTimeMax(maxTime)
