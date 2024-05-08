@@ -71,8 +71,8 @@ public final class EventCheckSchedule {
     AsyncIterator.execute(entries, entry ->
       coreModule.findTrigger(entry.module(), entry.type()).get()
         .findContent(entry.id()).thenAccept(content ->
-          result.put((String) content.get("googleAccount"), entry)),
-      entries.size(), value -> futureResponse.complete(result));
+          result.put((String) content.get("googleAccount"), entry)).thenAccept(
+            value -> futureResponse.complete(result)));
     return futureResponse;
   }
 
