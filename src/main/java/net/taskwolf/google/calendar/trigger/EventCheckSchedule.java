@@ -45,13 +45,13 @@ public final class EventCheckSchedule {
   }
 
   private void execute() {
-    coreModule.findAllTriggerEntries("google calendar",
+    coreModule.findAllTriggerEntries("google-calendar",
       "google-calendar-event-start-trigger").thenAccept(startEntries ->
-      coreModule.findAllTriggerEntries("google calendar",
+      coreModule.findAllTriggerEntries("google-calendar",
         "google-calendar-event-end-trigger").thenAccept(endEntries ->
-        coreModule.findAllTriggerEntries("google calendar",
+        coreModule.findAllTriggerEntries("google-calendar",
           "google-calendar-event-create-trigger").thenAccept(createEntries ->
-          coreModule.findAllTriggerEntries("google calendar",
+          coreModule.findAllTriggerEntries("google-calendar",
             "google-calendar-event-cancel-trigger").thenAccept(cancelEntries ->
               assignTriggersToAccounts(startEntries, endEntries, createEntries,
                 cancelEntries).thenAccept(this::readEvents)))));
