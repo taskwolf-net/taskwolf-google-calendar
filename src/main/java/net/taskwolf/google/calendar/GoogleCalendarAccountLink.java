@@ -46,7 +46,7 @@ public final class GoogleCalendarAccountLink extends GoogleAccountLink {
   public void registerAccount(UUID id, String identifier) throws Exception {
     super.registerAccount(id, identifier);
     googleAccountDatabaseTable.findAccount(identifier)
-      .thenApply(this::createCalendarService).thenApply(this::listCalendarEvents)
+      .thenApply(this::createCalendarService).thenApplyAsync(this::listCalendarEvents)
       .thenAccept(events -> setupCalendarEvents(identifier, events));
   }
 

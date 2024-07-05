@@ -48,7 +48,7 @@ public final class EventCreateActionExecutor implements ActionExecutor {
       return ActionResult.futureFailure("google.calendar.action.event.create.failure.wrong.end.time.format");
     }
     var futureResponse = new CompletableFuture<ActionResult>();
-    googleAccountDatabaseTable.findAccount(googleAccount).thenAccept(account ->
+    googleAccountDatabaseTable.findAccount(googleAccount).thenApplyAsync(account ->
       futureResponse.complete(ActionResult.success(buildInformation(
         insertEvent(GoogleCredential.of(configuration.clientId(),
             configuration.clientSecret(), account).buildCredential(),

@@ -30,7 +30,7 @@ public final class EventCancelActionExecutor implements ActionExecutor {
     var dissolve = PlaceholderDissolve.create(information);
     eventId = dissolve.dissolve(eventId);
     var futureResponse = new CompletableFuture<ActionResult>();
-    googleAccountDatabaseTable.findAccount(googleAccount).thenAccept(account ->
+    googleAccountDatabaseTable.findAccount(googleAccount).thenAcceptAsync(account ->
       futureResponse.complete(ActionResult.success(buildInformation(
         cancelEvent(GoogleCredential.of(configuration.clientId(),
           configuration.clientSecret(), account).buildCredential())))));

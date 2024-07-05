@@ -82,7 +82,7 @@ public final class EventCheckSchedule {
     for (var googleId : entries.keySet()) {
       var accountTriggers = entries.get(googleId);
       googleAccountDatabaseTable.findAccount(googleId)
-        .thenApply(this::createCalendarService).thenApply(this::listCalendarEvents)
+        .thenApply(this::createCalendarService).thenApplyAsync(this::listCalendarEvents)
         .thenAccept(currentEvents -> googleCalendarEventDatabaseTable
           .findCalendarEvents(googleId).thenAccept(previousEvents ->
             processEventTriggers(googleId, currentEvents, previousEvents,
