@@ -31,19 +31,18 @@ public final class GoogleCalendarEventDatabaseTable extends DatabaseTable {
   }
 
   public void updateCalendarEvents(String accountId, List<String> eventIds) {
-    update(DatabaseCell.create(accountId), DatabaseRow.of(accountId, eventIds));
+    update(accountId, DatabaseRow.of(accountId, eventIds));
   }
 
   public void deleteCalendarEvents(String accountId) {
-    delete(DatabaseCell.create(accountId));
+    delete(accountId);
   }
 
   public CompletableFuture<Boolean> calendarEventsExists(String accountId) {
-    return exists(DatabaseCell.create(accountId));
+    return exists(accountId);
   }
 
   public CompletableFuture<List<String>> findCalendarEvents(String accountId) {
-    return selectRow(DatabaseCell.create(accountId)).thenApply(row ->
-      row.findCell(1).listValue());
+    return selectRow(accountId).thenApply(row -> row.findCell(1).listValue());
   }
 }
