@@ -2,7 +2,7 @@ plugins {
   id("java")
 }
 
-group = "net.taskwolf"
+group = "com.dulno"
 version = "1.0.0-SNAPSHOT"
 java.sourceCompatibility = JavaVersion.VERSION_21
 java.targetCompatibility = JavaVersion.VERSION_21
@@ -10,22 +10,22 @@ java.targetCompatibility = JavaVersion.VERSION_21
 repositories {
   mavenCentral()
   maven {
-    url = uri("https://git.taskwolf.net/api/v4/projects/8/packages/maven")
+    url = uri("https://git.dulno.com/api/v4/projects/8/packages/maven")
     credentials(HttpHeaderCredentials::class) {
       name = "Private-Token"
-      value = System.getenv("TASKWOLF_GITLAB_PRIVATE_TOKEN") ?:
-        findProperty("taskwolfGitlabPrivateToken") as String?
+      value = System.getenv("DULNO_GITLAB_PRIVATE_TOKEN") ?:
+        findProperty("dulnoGitlabPrivateToken") as String?
     }
     authentication {
       create("header", HttpHeaderAuthentication::class)
     }
   }
   maven {
-    url = uri("https://git.taskwolf.net/api/v4/projects/21/packages/maven")
+    url = uri("https://git.dulno.com/api/v4/projects/21/packages/maven")
     credentials(HttpHeaderCredentials::class) {
       name = "Private-Token"
-      value = System.getenv("TASKWOLF_GITLAB_PRIVATE_TOKEN") ?:
-        findProperty("taskwolfGitlabPrivateToken") as String?
+      value = System.getenv("DULNO_GITLAB_PRIVATE_TOKEN") ?:
+        findProperty("dulnoGitlabPrivateToken") as String?
     }
     authentication {
       create("header", HttpHeaderAuthentication::class)
@@ -37,8 +37,8 @@ dependencies {
   testCompileOnly(platform("org.junit:junit-bom:5.10.2"))
   testCompileOnly("org.junit.jupiter:junit-jupiter:5.10.2")
 
-  compileOnly("net.taskwolf:core:1.0.0-SNAPSHOT")
-  compileOnly("net.taskwolf:google:1.0.0-SNAPSHOT")
+  compileOnly("com.dulno:core:1.0.0-SNAPSHOT")
+  compileOnly("com.dulno:google:1.0.0-SNAPSHOT")
 
   compileOnly("com.google.inject:guice:7.0.0")
 

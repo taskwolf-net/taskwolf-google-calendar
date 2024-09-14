@@ -1,4 +1,4 @@
-package net.taskwolf.google.calendar.action.create;
+package com.dulno.google.calendar.action.create;
 
 import com.datastax.oss.driver.shaded.guava.common.collect.Maps;
 import com.google.api.client.auth.oauth2.Credential;
@@ -9,13 +9,13 @@ import com.google.api.services.calendar.Calendar;
 import com.google.api.services.calendar.model.Event;
 import com.google.api.services.calendar.model.EventDateTime;
 import lombok.AllArgsConstructor;
-import net.taskwolf.core.action.ActionExecutor;
-import net.taskwolf.core.action.ActionResult;
-import net.taskwolf.core.workflow.placeholder.PlaceholderDissolve;
-import net.taskwolf.google.GoogleConfiguration;
-import net.taskwolf.google.account.GoogleAccountDatabaseTable;
-import net.taskwolf.google.account.GoogleCredential;
-import net.taskwolf.google.calendar.GoogleCalendarEventTime;
+import com.dulno.core.action.ActionExecutor;
+import com.dulno.core.action.ActionResult;
+import com.dulno.core.workflow.placeholder.PlaceholderDissolve;
+import com.dulno.google.GoogleConfiguration;
+import com.dulno.google.account.GoogleAccountDatabaseTable;
+import com.dulno.google.account.GoogleCredential;
+import com.dulno.google.calendar.GoogleCalendarEventTime;
 
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
@@ -63,7 +63,7 @@ public final class EventCreateActionExecutor implements ActionExecutor {
     try {
       var service = new Calendar.Builder(GoogleNetHttpTransport.newTrustedTransport(),
         new GsonFactory(), credential)
-        .setApplicationName("Taskwolf")
+        .setApplicationName("Dulno")
         .build();
       var event = createEvent(eventStartDateTime, eventEndDateTime);
       return service.events().insert("primary", event).execute();

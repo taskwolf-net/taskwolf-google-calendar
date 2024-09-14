@@ -1,4 +1,4 @@
-package net.taskwolf.google.calendar.trigger;
+package com.dulno.google.calendar.trigger;
 
 import com.google.api.client.googleapis.javanet.GoogleNetHttpTransport;
 import com.google.api.client.json.gson.GsonFactory;
@@ -10,15 +10,15 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Multimap;
 import lombok.RequiredArgsConstructor;
-import net.taskwolf.core.CoreModule;
-import net.taskwolf.core.iterator.AsyncIterator;
-import net.taskwolf.core.trigger.TriggerEntry;
-import net.taskwolf.google.GoogleConfiguration;
-import net.taskwolf.google.account.GoogleAccount;
-import net.taskwolf.google.account.GoogleAccountDatabaseTable;
-import net.taskwolf.google.account.GoogleCredential;
-import net.taskwolf.google.calendar.GoogleCalendarEventDatabaseTable;
-import net.taskwolf.google.calendar.GoogleCalendarEventTime;
+import com.dulno.core.CoreModule;
+import com.dulno.core.iterator.AsyncIterator;
+import com.dulno.core.trigger.TriggerEntry;
+import com.dulno.google.GoogleConfiguration;
+import com.dulno.google.account.GoogleAccount;
+import com.dulno.google.account.GoogleAccountDatabaseTable;
+import com.dulno.google.account.GoogleCredential;
+import com.dulno.google.calendar.GoogleCalendarEventDatabaseTable;
+import com.dulno.google.calendar.GoogleCalendarEventTime;
 
 import java.util.Collection;
 import java.util.List;
@@ -97,7 +97,7 @@ public final class EventCheckSchedule {
         googleConfiguration.clientSecret(), account).buildCredential();
       return new Calendar.Builder(GoogleNetHttpTransport.newTrustedTransport(),
         new GsonFactory(), credential)
-        .setApplicationName("Taskwolf")
+        .setApplicationName("Dulno")
         .build();
     } catch (Exception ignored) {
       return null;

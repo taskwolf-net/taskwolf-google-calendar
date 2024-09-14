@@ -1,7 +1,7 @@
-package net.taskwolf.google.calendar;
+package com.dulno.google.calendar;
 
 import com.google.common.collect.Lists;
-import net.taskwolf.core.database.*;
+import com.dulno.core.database.*;
 
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
