@@ -56,7 +56,7 @@ dependencies {
 
   compileOnly("org.springframework.boot:spring-boot-starter-web:3.2.5")
 
-  compileOnly("io.jsonwebtoken:jjwt:0.12.5")
+  compileOnly("io.jsonwebtoken:jjwt:0.12.6")
 
   implementation("com.google.apis:google-api-services-calendar:v3-rev20241101-2.0.0")
 }
