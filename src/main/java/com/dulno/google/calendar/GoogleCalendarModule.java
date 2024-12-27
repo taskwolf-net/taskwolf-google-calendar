@@ -25,11 +25,16 @@ import com.dulno.google.calendar.trigger.create.EventCreateTrigger;
 import com.dulno.google.calendar.trigger.end.EventEndTrigger;
 import com.dulno.google.calendar.trigger.start.EventStartTrigger;
 import com.dulno.google.select.GoogleAccountSelect;
+import com.google.inject.Key;
+import com.google.inject.name.Names;
 
 @ModuleDescription(name = "google-calendar", version = "1.0.0-SNAPSHOT",
   priority = ModuleLoadPriority.NEUTRAL)
 public final class GoogleCalendarModule extends Integration {
   private Log log;
+  private GoogleConfiguration googleConfiguration;
+  private GoogleAccountDatabaseTable googleAccountDatabaseTable;
+  private GoogleUserAccountDatabaseTable googleUserAccountDatabaseTable;
   private GoogleCalendarAccountLink accountLink;
   private InputComponentSelect googleAccountSelect;
   private EventCheckSchedule eventCheckSchedule;
@@ -41,11 +46,11 @@ public final class GoogleCalendarModule extends Integration {
   @Override
   public void enable() throws Exception {
     log = injector().getInstance(Log.class).subLog("Google Calendar");
-    var googleConfiguration = GoogleConfiguration.createAndLoad();
-    var googleAccountDatabaseTable = injector().getInstance(
-      GoogleAccountDatabaseTable.class);
-    var googleUserAccountDatabaseTable = injector().getInstance(
-      GoogleUserAccountDatabaseTable.class);
+    googleConfiguration = GoogleConfiguration.createAndLoad();
+    googleAccountDatabaseTable = injector().getInstance(Key.get(
+      GoogleAccountDatabaseTable.class, Names.named("googleCalendarAccount")));
+    googleUserAccountDatabaseTable = injector().getInstance(Key.get(
+      GoogleUserAccountDatabaseTable.class, Names.named("googleCalendarUserAccount")));
     accountLink = GoogleCalendarAccountLink.create(googleConfiguration,
       googleAccountDatabaseTable, googleUserAccountDatabaseTable,
       injector().getInstance(GoogleCalendarEventDatabaseTable.class));
@@ -59,8 +64,7 @@ public final class GoogleCalendarModule extends Integration {
   private void startEventCheckSchedule() throws Exception {
     eventCheckSchedule = EventCheckSchedule.create(
       injector().getInstance(WorkflowModule.class),
-      GoogleConfiguration.createAndLoad(),
-      injector().getInstance(GoogleAccountDatabaseTable.class),
+      googleConfiguration, googleAccountDatabaseTable,
       injector().getInstance(GoogleCalendarEventDatabaseTable.class));
     eventCheckSchedule.start();
   }
@@ -101,14 +105,12 @@ public final class GoogleCalendarModule extends Integration {
   public ActionRepository actionRepository() {
     var databaseConnection = injector().getInstance(DatabaseConnection.class);
     var databaseKeyspace = injector().getInstance(DatabaseKeyspace.class);
-    var googleConfiguration = injector().getInstance(GoogleConfiguration.class);
-    var accountDatabaseTable = injector().getInstance(GoogleAccountDatabaseTable.class);
     var repository = ActionRepository.create();
     repository.registerAction(EventCreateAction.create(googleConfiguration,
-      accountDatabaseTable, googleAccountSelect, databaseConnection,
+      googleAccountDatabaseTable, googleAccountSelect, databaseConnection,
       databaseKeyspace));
     repository.registerAction(EventCancelAction.create(googleConfiguration,
-      accountDatabaseTable, googleAccountSelect, databaseConnection,
+      googleAccountDatabaseTable, googleAccountSelect, databaseConnection,
       databaseKeyspace));
     return repository;
   }

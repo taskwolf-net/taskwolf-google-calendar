@@ -3,10 +3,10 @@ package com.dulno.google.calendar;
 import com.google.inject.AbstractModule;
 import com.google.inject.Provides;
 import com.google.inject.Singleton;
+import com.google.inject.name.Named;
 import lombok.RequiredArgsConstructor;
 import com.dulno.core.database.DatabaseConnection;
 import com.dulno.core.database.DatabaseKeyspace;
-import com.dulno.google.GoogleConfiguration;
 import com.dulno.google.account.GoogleAccountDatabaseTable;
 import com.dulno.google.account.GoogleUserAccountDatabaseTable;
 
@@ -14,12 +14,7 @@ import com.dulno.google.account.GoogleUserAccountDatabaseTable;
 public final class GoogleCalendarInjectionModule extends AbstractModule {
   @Provides
   @Singleton
-  GoogleConfiguration provideGoogleConfiguration() throws Exception {
-    return GoogleConfiguration.createAndLoad();
-  }
-
-  @Provides
-  @Singleton
+  @Named("googleCalendarAccount")
   GoogleAccountDatabaseTable provideGoogleAccountDatabaseTable(
     DatabaseConnection connection, DatabaseKeyspace keyspace
   ) {
@@ -31,6 +26,7 @@ public final class GoogleCalendarInjectionModule extends AbstractModule {
 
   @Provides
   @Singleton
+  @Named("googleCalendarUserAccount")
   GoogleUserAccountDatabaseTable provideGoogleUserAccountDatabaseTable(
     DatabaseConnection connection, DatabaseKeyspace keyspace
   ) {
