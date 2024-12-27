@@ -1,5 +1,6 @@
 package com.dulno.google.calendar.trigger;
 
+import com.dulno.workflow.WorkflowModule;
 import com.google.api.client.googleapis.javanet.GoogleNetHttpTransport;
 import com.google.api.client.json.gson.GsonFactory;
 import com.google.api.client.util.DateTime;
@@ -10,9 +11,8 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Multimap;
 import lombok.RequiredArgsConstructor;
-import com.dulno.core.CoreModule;
 import com.dulno.core.iterator.AsyncIterator;
-import com.dulno.core.trigger.TriggerEntry;
+import com.dulno.workflow.trigger.TriggerEntry;
 import com.dulno.google.GoogleConfiguration;
 import com.dulno.google.account.GoogleAccount;
 import com.dulno.google.account.GoogleAccountDatabaseTable;
@@ -28,7 +28,7 @@ import java.util.concurrent.*;
 
 @RequiredArgsConstructor(staticName = "create")
 public final class EventCheckSchedule {
-  private final CoreModule coreModule;
+  private final WorkflowModule workflowModule;
   private final GoogleConfiguration googleConfiguration;
   private final GoogleAccountDatabaseTable googleAccountDatabaseTable;
   private final GoogleCalendarEventDatabaseTable googleCalendarEventDatabaseTable;
@@ -45,13 +45,13 @@ public final class EventCheckSchedule {
   }
 
   private void execute() {
-    coreModule.findAllTriggerEntries("google-calendar",
+    workflowModule.findAllTriggerEntries("google-calendar",
       "google-calendar-event-start-trigger").thenAccept(startEntries ->
-      coreModule.findAllTriggerEntries("google-calendar",
+      workflowModule.findAllTriggerEntries("google-calendar",
         "google-calendar-event-end-trigger").thenAccept(endEntries ->
-        coreModule.findAllTriggerEntries("google-calendar",
+        workflowModule.findAllTriggerEntries("google-calendar",
           "google-calendar-event-create-trigger").thenAccept(createEntries ->
-          coreModule.findAllTriggerEntries("google-calendar",
+          workflowModule.findAllTriggerEntries("google-calendar",
             "google-calendar-event-cancel-trigger").thenAccept(cancelEntries ->
               assignTriggersToAccounts(startEntries, endEntries, createEntries,
                 cancelEntries).thenAccept(this::readEvents)))));
@@ -69,7 +69,7 @@ public final class EventCheckSchedule {
     var futureResponse = new CompletableFuture<Multimap<String, TriggerEntry>>();
     var result = HashMultimap.<String, TriggerEntry>create();
     AsyncIterator.execute(entries, entry ->
-      coreModule.findTrigger(entry.module(), entry.type()).get()
+      workflowModule.findTrigger(entry.module(), entry.type()).get()
         .findContent(entry.id()).thenAccept(content ->
           result.put((String) content.get("googleAccount"), entry)).thenAccept(
             value -> futureResponse.complete(result)));
@@ -226,7 +226,7 @@ public final class EventCheckSchedule {
   }
 
   private void executeEventTrigger(UUID triggerId, Event event) {
-    coreModule.createWorkflow(triggerId).thenAccept(workflow ->
+    workflowModule.createWorkflow(triggerId).thenAccept(workflow ->
       workflow.trigger(createEventTriggerInformation(event)));
   }
 

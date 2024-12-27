@@ -1,18 +1,18 @@
 package com.dulno.google.calendar;
 
+import com.dulno.workflow.WorkflowModule;
+import com.dulno.workflow.integration.Integration;
 import com.google.inject.Injector;
-import com.dulno.core.CoreModule;
 import com.dulno.core.account.AccountLink;
-import com.dulno.core.action.ActionRepository;
+import com.dulno.workflow.action.ActionRepository;
 import com.dulno.core.database.DatabaseConnection;
 import com.dulno.core.database.DatabaseKeyspace;
 import com.dulno.core.log.Log;
-import com.dulno.core.module.Module;
 import com.dulno.core.module.ModuleDescription;
 import com.dulno.core.module.ModuleInformation;
 import com.dulno.core.module.ModuleLoadPriority;
-import com.dulno.core.trigger.TriggerRepository;
-import com.dulno.core.workflow.component.input.InputComponentSelect;
+import com.dulno.workflow.trigger.TriggerRepository;
+import com.dulno.workflow.component.input.InputComponentSelect;
 import com.dulno.google.GoogleAccountLinkRepository;
 import com.dulno.google.GoogleConfiguration;
 import com.dulno.google.account.GoogleAccountDatabaseTable;
@@ -28,7 +28,7 @@ import com.dulno.google.select.GoogleAccountSelect;
 
 @ModuleDescription(name = "google-calendar", version = "1.0.0-SNAPSHOT",
   priority = ModuleLoadPriority.NEUTRAL)
-public final class GoogleCalendarModule extends Module {
+public final class GoogleCalendarModule extends Integration {
   private Log log;
   private GoogleCalendarAccountLink accountLink;
   private InputComponentSelect googleAccountSelect;
@@ -58,7 +58,7 @@ public final class GoogleCalendarModule extends Module {
 
   private void startEventCheckSchedule() throws Exception {
     eventCheckSchedule = EventCheckSchedule.create(
-      injector().getInstance(CoreModule.class),
+      injector().getInstance(WorkflowModule.class),
       GoogleConfiguration.createAndLoad(),
       injector().getInstance(GoogleAccountDatabaseTable.class),
       injector().getInstance(GoogleCalendarEventDatabaseTable.class));
