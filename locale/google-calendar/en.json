@@ -63,6 +63,7 @@
   "google.calendar.action.event.create.output.event.location": "Event Location",
   "google.calendar.action.event.create.output.event.start.time": "Event Start Time",
   "google.calendar.action.event.create.output.event.end.time": "Event End Time",
+  "google.calendar.action.event.create.failure.account.not.found": "An error occurred when creating a new Google Calendar event. The error occurred because the specified Google account could not be found.",
   "google.calendar.action.event.create.failure.wrong.start.time.format": "An error occurred when creating a new Google Calendar event. The specified start time does not correspond to the specified format dd.MM.yyyy HH:mm",
   "google.calendar.action.event.create.failure.wrong.end.time.format": "An error occurred when creating a new Google Calendar event. The specified end time does not correspond to the specified format dd.MM.yyyy HH:mm",
 
@@ -77,5 +78,6 @@
   "google.calendar.action.event.cancel.output.event.description": "Event Description",
   "google.calendar.action.event.cancel.output.event.location": "Event Location",
   "google.calendar.action.event.cancel.output.event.start.time": "Event Start Time",
-  "google.calendar.action.event.cancel.output.event.end.time": "Event End Time"
+  "google.calendar.action.event.cancel.output.event.end.time": "Event End Time",
+  "google.calendar.action.event.cancel.failure.account.not.found": "An error occurred when canceling a Google Calendar event. The error occurred because the specified Google account could not be found."
 }

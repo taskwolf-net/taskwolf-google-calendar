@@ -1,5 +1,6 @@
 package com.dulno.google.calendar.trigger.create;
 
+import com.dulno.google.account.GoogleUserAccountDatabaseTable;
 import com.google.common.collect.Lists;
 import lombok.RequiredArgsConstructor;
 import com.dulno.core.database.*;
@@ -19,17 +20,20 @@ import java.util.concurrent.CompletableFuture;
 @RequiredArgsConstructor(staticName = "create")
 public final class EventCreateTrigger implements Trigger {
   public static EventCreateTrigger create(
+    GoogleUserAccountDatabaseTable googleUserAccountDatabaseTable,
     InputComponentSelect googleAccountSelect,
     DatabaseConnection databaseConnection, DatabaseKeyspace databaseKeyspace
   ) {
     var contentColumns = Lists.<DatabaseColumn>newArrayList();
+    contentColumns.add(DatabaseColumn.create("owner", DatabaseDataType.UUID));
     contentColumns.add(DatabaseColumn.create("googleAccount", DatabaseDataType.TEXT));
-    return new EventCreateTrigger(googleAccountSelect,
+    return new EventCreateTrigger(googleUserAccountDatabaseTable, googleAccountSelect,
       TriggerContentDatabaseTable.create(databaseConnection, databaseKeyspace,
         "trigger_google_calendar_event_create", contentColumns));
   }
 
-  private final  InputComponentSelect googleAccountSelect;
+  private final GoogleUserAccountDatabaseTable googleUserAccountDatabaseTable;
+  private final InputComponentSelect googleAccountSelect;
   private final TriggerContentDatabaseTable contentDatabaseTable;
 
   @Override
@@ -59,15 +63,36 @@ public final class EventCreateTrigger implements Trigger {
   }
 
   @Override
-  public CompletableFuture<Void> insert(UUID triggerId, Map<String, Object> content) {
+  public CompletableFuture<Void> insert(
+    UUID triggerId, UUID ownerId, Map<String, Object> content
+  ) {
     return contentDatabaseTable.insertContent(triggerId,
-      DatabaseRow.of(content.get("googleAccount")));
+      DatabaseRow.of(ownerId, content.get("googleAccount")));
+  }
+
+  @Override
+  public CompletableFuture<Boolean> checkExecution(UUID triggerId) {
+    return contentDatabaseTable.findContent(triggerId)
+      .thenCompose(row -> googleUserAccountDatabaseTable.accountExists(
+          row.findCell(1).uuidValue())
+        .thenCompose(exists -> checkExecution(row.findCell(1).uuidValue(),
+          row.findCell(2).stringValue(), exists)));
+  }
+
+  public CompletableFuture<Boolean> checkExecution(
+    UUID ownerId, String googleAccountId, boolean hasAccounts
+  ) {
+    if (!hasAccounts) {
+      return CompletableFuture.completedFuture(false);
+    }
+    return googleUserAccountDatabaseTable.findAccounts(ownerId)
+      .thenApply(accounts -> accounts.contains(googleAccountId));
   }
 
   @Override
   public CompletableFuture<Map<String, Object>> findContent(UUID triggerId) {
     return contentDatabaseTable.findContent(triggerId).thenApply(row ->
-      Map.of("googleAccount", row.findCell(1).stringValue()));
+      Map.of("googleAccount", row.findCell(2).stringValue()));
   }
 
   @Override

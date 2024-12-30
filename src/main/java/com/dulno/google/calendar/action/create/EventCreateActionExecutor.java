@@ -1,6 +1,7 @@
 package com.dulno.google.calendar.action.create;
 
 import com.datastax.oss.driver.shaded.guava.common.collect.Maps;
+import com.dulno.google.account.GoogleUserAccountDatabaseTable;
 import com.google.api.client.auth.oauth2.Credential;
 import com.google.api.client.googleapis.javanet.GoogleNetHttpTransport;
 import com.google.api.client.json.gson.GsonFactory;
@@ -17,13 +18,17 @@ import com.dulno.google.account.GoogleAccountDatabaseTable;
 import com.dulno.google.account.GoogleCredential;
 import com.dulno.google.calendar.GoogleCalendarEventTime;
 
+import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 
 @AllArgsConstructor(staticName = "create")
 public final class EventCreateActionExecutor implements ActionExecutor {
   private final GoogleConfiguration configuration;
   private final GoogleAccountDatabaseTable googleAccountDatabaseTable;
+  private final GoogleUserAccountDatabaseTable googleUserAccountDatabaseTable;
+  private final UUID owner;
   private final String googleAccount;
   private String eventTitle;
   private String eventDescription;
@@ -39,6 +44,26 @@ public final class EventCreateActionExecutor implements ActionExecutor {
     eventLocation = dissolve.dissolve(eventLocation);
     eventStartTime = dissolve.dissolve(eventStartTime);
     eventEndTime = dissolve.dissolve(eventEndTime);
+    return googleUserAccountDatabaseTable.accountExists(owner)
+      .thenCompose(this::checkOwnerAccounts);
+  }
+
+  private CompletableFuture<ActionResult> checkOwnerAccounts(boolean hasAccounts) {
+    if (!hasAccounts) {
+      return ActionResult.futureFailure("google.calendar.action.event.create.failure.account.not.found");
+    }
+    return googleUserAccountDatabaseTable.findAccounts(owner)
+      .thenCompose(this::checkOwnerAccounts);
+  }
+
+  private CompletableFuture<ActionResult> checkOwnerAccounts(List<String> accounts) {
+    if (!accounts.contains(googleAccount)) {
+      return ActionResult.futureFailure("google.calendar.action.event.create.failure.account.not.found");
+    }
+    return createEvent();
+  }
+
+  private CompletableFuture<ActionResult> createEvent() {
     var eventStartDateTime = GoogleCalendarEventTime.of(eventStartTime).convertToDateTime();
     if (eventStartDateTime.isEmpty()) {
       return ActionResult.futureFailure("google.calendar.action.event.create.failure.wrong.start.time.format");

@@ -1,6 +1,7 @@
 package com.dulno.google.calendar.action.cancel;
 
 import com.datastax.oss.driver.shaded.guava.common.collect.Maps;
+import com.dulno.google.account.GoogleUserAccountDatabaseTable;
 import com.google.api.client.auth.oauth2.Credential;
 import com.google.api.client.googleapis.javanet.GoogleNetHttpTransport;
 import com.google.api.client.json.gson.GsonFactory;
@@ -15,13 +16,17 @@ import com.dulno.google.account.GoogleAccountDatabaseTable;
 import com.dulno.google.account.GoogleCredential;
 import com.dulno.google.calendar.GoogleCalendarEventTime;
 
+import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 
 @AllArgsConstructor(staticName = "create")
 public final class EventCancelActionExecutor implements ActionExecutor {
   private final GoogleConfiguration configuration;
   private final GoogleAccountDatabaseTable googleAccountDatabaseTable;
+  private final GoogleUserAccountDatabaseTable googleUserAccountDatabaseTable;
+  private final UUID owner;
   private final String googleAccount;
   private String eventId;
 
@@ -29,6 +34,26 @@ public final class EventCancelActionExecutor implements ActionExecutor {
   public CompletableFuture<ActionResult> execute(Map<String, Object> information) {
     var dissolve = PlaceholderDissolve.create(information);
     eventId = dissolve.dissolve(eventId);
+    return googleUserAccountDatabaseTable.accountExists(owner)
+      .thenCompose(this::checkOwnerAccounts);
+  }
+
+  private CompletableFuture<ActionResult> checkOwnerAccounts(boolean hasAccounts) {
+    if (!hasAccounts) {
+      return ActionResult.futureFailure("google.calendar.action.event.cancel.failure.account.not.found");
+    }
+    return googleUserAccountDatabaseTable.findAccounts(owner)
+      .thenCompose(this::checkOwnerAccounts);
+  }
+
+  private CompletableFuture<ActionResult> checkOwnerAccounts(List<String> accounts) {
+    if (!accounts.contains(googleAccount)) {
+      return ActionResult.futureFailure("google.calendar.action.event.cancel.failure.account.not.found");
+    }
+    return cancelEvent();
+  }
+
+  private CompletableFuture<ActionResult> cancelEvent() {
     var futureResponse = new CompletableFuture<ActionResult>();
     googleAccountDatabaseTable.findAccount(googleAccount).thenAcceptAsync(account ->
       futureResponse.complete(ActionResult.success(buildInformation(

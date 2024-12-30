@@ -1,5 +1,6 @@
 package com.dulno.google.calendar.action.cancel;
 
+import com.dulno.google.account.GoogleUserAccountDatabaseTable;
 import com.google.common.collect.Lists;
 import lombok.AllArgsConstructor;
 import com.dulno.workflow.action.Action;
@@ -22,19 +23,23 @@ public final class EventCancelAction implements Action<EventCancelActionExecutor
   public static EventCancelAction create(
     GoogleConfiguration googleConfiguration,
     GoogleAccountDatabaseTable googleAccountDatabaseTable,
+    GoogleUserAccountDatabaseTable googleUserAccountDatabaseTable,
     InputComponentSelect googleAccountSelect,
     DatabaseConnection databaseConnection, DatabaseKeyspace databaseKeyspace
   ) {
     var contentColumns = Lists.<DatabaseColumn>newArrayList();
+    contentColumns.add(DatabaseColumn.create("owner", DatabaseDataType.UUID));
     contentColumns.add(DatabaseColumn.create("googleAccount", DatabaseDataType.TEXT));
     contentColumns.add(DatabaseColumn.create("eventId", DatabaseDataType.TEXT));
     return new EventCancelAction(googleConfiguration, googleAccountDatabaseTable,
-      googleAccountSelect, ActionContentDatabaseTable.create(databaseConnection,
-      databaseKeyspace, "action_google_calendar_event_cancel", contentColumns));
+      googleUserAccountDatabaseTable, googleAccountSelect,
+      ActionContentDatabaseTable.create(databaseConnection,
+        databaseKeyspace, "action_google_calendar_event_cancel", contentColumns));
   }
 
   private final GoogleConfiguration googleConfiguration;
   private final GoogleAccountDatabaseTable googleAccountDatabaseTable;
+  private final GoogleUserAccountDatabaseTable googleUserAccountDatabaseTable;
   private final InputComponentSelect googleAccountSelect;
   private final ActionContentDatabaseTable contentDatabaseTable;
 
@@ -67,24 +72,27 @@ public final class EventCancelAction implements Action<EventCancelActionExecutor
   }
 
   @Override
-  public CompletableFuture<Void> insert(UUID actionId, Map<String, Object> content) {
-    return contentDatabaseTable.insertContent(actionId, DatabaseRow.of(
+  public CompletableFuture<Void> insert(
+    UUID actionId, UUID ownerId, Map<String, Object> content
+  ) {
+    return contentDatabaseTable.insertContent(actionId, DatabaseRow.of(ownerId,
       content.get("googleAccount"), content.get("eventId")));
   }
 
   @Override
   public CompletableFuture<Map<String, Object>> findContent(UUID triggerId) {
     return contentDatabaseTable.findContent(triggerId).thenApply(row ->
-      Map.of("googleAccount", row.findCell(1).stringValue(),
-        "eventId", row.findCell(2).stringValue()));
+      Map.of("googleAccount", row.findCell(2).stringValue(),
+        "eventId", row.findCell(3).stringValue()));
   }
 
   @Override
   public CompletableFuture<EventCancelActionExecutor> build(UUID actionId) {
     return contentDatabaseTable.findContent(actionId).thenApply(content ->
       EventCancelActionExecutor.create(googleConfiguration,
-        googleAccountDatabaseTable, content.findCell(1).stringValue(),
-        content.findCell(2).stringValue()));
+        googleAccountDatabaseTable, googleUserAccountDatabaseTable,
+        content.findCell(1).uuidValue(), content.findCell(2).stringValue(),
+        content.findCell(3).stringValue()));
   }
 
   @Override

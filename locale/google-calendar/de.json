@@ -63,6 +63,7 @@
   "google.calendar.action.event.create.output.event.location": "Ergeignis Standort",
   "google.calendar.action.event.create.output.event.start.time": "Ergeignis Startzeit",
   "google.calendar.action.event.create.output.event.end.time": "Ergeignis Endzeit",
+  "google.calendar.action.event.create.failure.account.not.found": "Beim Erstellen eines neuen Google-Kalender-Ereignisses ist ein Fehler aufgetreten. Der Fehler trat auf, weil das angegebene Google-Konto nicht gefunden werden konnte.",
   "google.calendar.action.event.create.failure.wrong.start.time.format": "Beim Erstellen eines neuen Google Calendar-Ereignisses ist ein Fehler aufgetreten. Die angegebene Startzeit entspricht nicht dem angegebenen Format tt.MM.jjjj HH:mm",
   "google.calendar.action.event.create.failure.wrong.end.time.format": "Beim Erstellen eines neuen Google Calendar-Ereignisses ist ein Fehler aufgetreten. Die angegebene Endzeit entspricht nicht dem angegebenen Format tt.MM.jjjj HH:mm",
 
@@ -77,5 +78,6 @@
   "google.calendar.action.event.cancel.output.event.description": "Ergeignis Beschreibung",
   "google.calendar.action.event.cancel.output.event.location": "Ergeignis Location",
   "google.calendar.action.event.cancel.output.event.start.time": "Ergeignis Startzeit",
-  "google.calendar.action.event.cancel.output.event.end.time": "Ergeignis Endzeit"
+  "google.calendar.action.event.cancel.output.event.end.time": "Ergeignis Endzeit",
+  "google.calendar.action.event.cancel.failure.account.not.found": "Beim Abbrechen eines Google-Kalender-Ereignisses ist ein Fehler aufgetreten. Der Fehler trat auf, weil das angegebene Google-Konto nicht gefunden werden konnte."
 }

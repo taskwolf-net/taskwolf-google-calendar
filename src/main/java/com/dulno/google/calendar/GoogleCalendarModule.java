@@ -90,14 +90,18 @@ public final class GoogleCalendarModule extends Integration {
     var databaseConnection = injector().getInstance(DatabaseConnection.class);
     var databaseKeyspace = injector().getInstance(DatabaseKeyspace.class);
     var repository = TriggerRepository.create();
-    repository.registerTrigger(EventStartTrigger.create(googleAccountSelect,
-      databaseConnection, databaseKeyspace));
-    repository.registerTrigger(EventEndTrigger.create(googleAccountSelect,
-      databaseConnection, databaseKeyspace));
-    repository.registerTrigger(EventCreateTrigger.create(googleAccountSelect,
-      databaseConnection, databaseKeyspace));
-    repository.registerTrigger(EventCancelTrigger.create(googleAccountSelect,
-      databaseConnection, databaseKeyspace));
+    repository.registerTrigger(EventStartTrigger.create(
+      googleUserAccountDatabaseTable, googleAccountSelect, databaseConnection,
+      databaseKeyspace));
+    repository.registerTrigger(EventEndTrigger.create(
+      googleUserAccountDatabaseTable, googleAccountSelect, databaseConnection,
+      databaseKeyspace));
+    repository.registerTrigger(EventCreateTrigger.create(
+      googleUserAccountDatabaseTable, googleAccountSelect, databaseConnection,
+      databaseKeyspace));
+    repository.registerTrigger(EventCancelTrigger.create(
+      googleUserAccountDatabaseTable, googleAccountSelect, databaseConnection,
+      databaseKeyspace));
     return repository;
   }
 
@@ -107,11 +111,11 @@ public final class GoogleCalendarModule extends Integration {
     var databaseKeyspace = injector().getInstance(DatabaseKeyspace.class);
     var repository = ActionRepository.create();
     repository.registerAction(EventCreateAction.create(googleConfiguration,
-      googleAccountDatabaseTable, googleAccountSelect, databaseConnection,
-      databaseKeyspace));
+      googleAccountDatabaseTable, googleUserAccountDatabaseTable,
+      googleAccountSelect, databaseConnection, databaseKeyspace));
     repository.registerAction(EventCancelAction.create(googleConfiguration,
-      googleAccountDatabaseTable, googleAccountSelect, databaseConnection,
-      databaseKeyspace));
+      googleAccountDatabaseTable, googleUserAccountDatabaseTable,
+      googleAccountSelect, databaseConnection, databaseKeyspace));
     return repository;
   }
 }
