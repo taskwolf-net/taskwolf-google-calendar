@@ -1,5 +1,6 @@
 package com.dulno.google.calendar;
 
+import com.dulno.core.environment.DulnoEnvironment;
 import com.dulno.workflow.WorkflowModule;
 import com.dulno.workflow.integration.Integration;
 import com.google.inject.Injector;
@@ -53,6 +54,7 @@ public final class GoogleCalendarModule extends Integration {
       GoogleUserAccountDatabaseTable.class, Names.named("googleCalendarUserAccount")));
     accountLink = GoogleCalendarAccountLink.create(googleConfiguration,
       googleAccountDatabaseTable, googleUserAccountDatabaseTable,
+      injector().getInstance(DulnoEnvironment.class),
       injector().getInstance(GoogleCalendarEventDatabaseTable.class));
     injector().getInstance(GoogleAccountLinkRepository.class)
       .registerGoogleAccountLink(accountLink);
