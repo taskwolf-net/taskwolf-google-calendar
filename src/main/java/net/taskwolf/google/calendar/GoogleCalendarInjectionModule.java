@@ -1,14 +1,14 @@
-package com.dulno.google.calendar;
+package net.taskwolf.google.calendar;
 
 import com.google.inject.AbstractModule;
 import com.google.inject.Provides;
 import com.google.inject.Singleton;
 import com.google.inject.name.Named;
 import lombok.RequiredArgsConstructor;
-import com.dulno.core.database.DatabaseConnection;
-import com.dulno.core.database.DatabaseKeyspace;
-import com.dulno.google.account.GoogleAccountDatabaseTable;
-import com.dulno.google.account.GoogleUserAccountDatabaseTable;
+import net.taskwolf.core.database.DatabaseConnection;
+import net.taskwolf.core.database.DatabaseKeyspace;
+import net.taskwolf.google.account.GoogleAccountDatabaseTable;
+import net.taskwolf.google.account.GoogleUserAccountDatabaseTable;
 
 @RequiredArgsConstructor(staticName = "create")
 public final class GoogleCalendarInjectionModule extends AbstractModule {

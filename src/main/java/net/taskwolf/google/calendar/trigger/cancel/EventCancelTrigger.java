@@ -1,16 +1,16 @@
-package com.dulno.google.calendar.trigger.start;
+package net.taskwolf.google.calendar.trigger.cancel;
 
-import com.dulno.google.account.GoogleUserAccountDatabaseTable;
+import net.taskwolf.google.account.GoogleUserAccountDatabaseTable;
 import com.google.common.collect.Lists;
 import lombok.RequiredArgsConstructor;
-import com.dulno.core.database.*;
-import com.dulno.core.database.condition.DatabaseCondition;
-import com.dulno.workflow.trigger.Trigger;
-import com.dulno.workflow.trigger.TriggerContentDatabaseTable;
-import com.dulno.workflow.trigger.TriggerInformation;
-import com.dulno.workflow.component.input.InputComponentSelect;
-import com.dulno.workflow.component.input.InputComponentVariable;
-import com.dulno.workflow.component.output.OutputComponentVariable;
+import net.taskwolf.core.database.*;
+import net.taskwolf.core.database.condition.DatabaseCondition;
+import net.taskwolf.workflow.trigger.Trigger;
+import net.taskwolf.workflow.trigger.TriggerContentDatabaseTable;
+import net.taskwolf.workflow.trigger.TriggerInformation;
+import net.taskwolf.workflow.component.input.InputComponentSelect;
+import net.taskwolf.workflow.component.input.InputComponentVariable;
+import net.taskwolf.workflow.component.output.OutputComponentVariable;
 
 import java.util.List;
 import java.util.Map;
@@ -18,8 +18,8 @@ import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 
 @RequiredArgsConstructor(staticName = "create")
-public final class EventStartTrigger implements Trigger {
-  public static EventStartTrigger create(
+public final class EventCancelTrigger implements Trigger {
+  public static EventCancelTrigger create(
     GoogleUserAccountDatabaseTable googleUserAccountDatabaseTable,
     InputComponentSelect googleAccountSelect,
     DatabaseConnection databaseConnection, DatabaseKeyspace databaseKeyspace
@@ -27,9 +27,9 @@ public final class EventStartTrigger implements Trigger {
     var contentColumns = Lists.<DatabaseColumn>newArrayList();
     contentColumns.add(DatabaseColumn.create("owner", DatabaseDataType.UUID));
     contentColumns.add(DatabaseColumn.create("googleAccount", DatabaseDataType.TEXT));
-    return new EventStartTrigger(googleUserAccountDatabaseTable, googleAccountSelect,
+    return new EventCancelTrigger(googleUserAccountDatabaseTable, googleAccountSelect,
       TriggerContentDatabaseTable.create(databaseConnection, databaseKeyspace,
-        "trigger_google_calendar_event_start", contentColumns));
+        "trigger_google_calendar_event_cancel", contentColumns));
   }
 
   private final GoogleUserAccountDatabaseTable googleUserAccountDatabaseTable;
@@ -38,22 +38,22 @@ public final class EventStartTrigger implements Trigger {
 
   @Override
   public String type() {
-    return "google-calendar-event-start-trigger";
+    return "google-calendar-event-cancel-trigger";
   }
 
   @Override
   public TriggerInformation information() {
     return TriggerInformation.builder()
-      .withName("google.calendar.trigger.event.start.name")
-      .withDescription("google.calendar.trigger.event.start.description")
-      .withInputVariable(InputComponentVariable.createSelect("google.calendar.trigger.event.start.input.account.name",
-        "googleAccount", "google.calendar.trigger.event.start.input.account.description", googleAccountSelect))
-      .withOutputVariable(OutputComponentVariable.create("google.calendar.trigger.event.start.output.event.id", "eventId"))
-      .withOutputVariable(OutputComponentVariable.create("google.calendar.trigger.event.start.output.event.name", "eventName"))
-      .withOutputVariable(OutputComponentVariable.create("google.calendar.trigger.event.start.output.event.description", "eventDescription"))
-      .withOutputVariable(OutputComponentVariable.create("google.calendar.trigger.event.start.output.event.location", "eventLocation"))
-      .withOutputVariable(OutputComponentVariable.create("google.calendar.trigger.event.start.output.event.start.time", "eventStartTime"))
-      .withOutputVariable(OutputComponentVariable.create("google.calendar.trigger.event.start.output.event.end.time", "eventEndTime"))
+      .withName("google.calendar.trigger.event.cancel.name")
+      .withDescription("google.calendar.trigger.event.cancel.description")
+      .withInputVariable(InputComponentVariable.createSelect("google.calendar.trigger.event.cancel.input.account.name",
+        "googleAccount", "google.calendar.trigger.event.cancel.input.account.description", googleAccountSelect))
+      .withOutputVariable(OutputComponentVariable.create("google.calendar.trigger.event.cancel.output.event.id", "eventId"))
+      .withOutputVariable(OutputComponentVariable.create("google.calendar.trigger.event.cancel.output.event.name", "eventName"))
+      .withOutputVariable(OutputComponentVariable.create("google.calendar.trigger.event.cancel.output.event.description", "eventDescription"))
+      .withOutputVariable(OutputComponentVariable.create("google.calendar.trigger.event.cancel.output.event.location", "eventLocation"))
+      .withOutputVariable(OutputComponentVariable.create("google.calendar.trigger.event.cancel.output.event.start.time", "eventStartTime"))
+      .withOutputVariable(OutputComponentVariable.create("google.calendar.trigger.event.cancel.output.event.end.time", "eventEndTime"))
       .build();
   }
 
@@ -106,4 +106,3 @@ public final class EventStartTrigger implements Trigger {
     return contentDatabaseTable.deleteContent(triggerId);
   }
 }
-

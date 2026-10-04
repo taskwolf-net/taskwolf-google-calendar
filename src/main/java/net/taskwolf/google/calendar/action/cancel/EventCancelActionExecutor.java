@@ -1,20 +1,20 @@
-package com.dulno.google.calendar.action.cancel;
+package net.taskwolf.google.calendar.action.cancel;
 
 import com.datastax.oss.driver.shaded.guava.common.collect.Maps;
-import com.dulno.google.account.GoogleUserAccountDatabaseTable;
+import net.taskwolf.google.account.GoogleUserAccountDatabaseTable;
 import com.google.api.client.auth.oauth2.Credential;
 import com.google.api.client.googleapis.javanet.GoogleNetHttpTransport;
 import com.google.api.client.json.gson.GsonFactory;
 import com.google.api.services.calendar.Calendar;
 import com.google.api.services.calendar.model.Event;
 import lombok.AllArgsConstructor;
-import com.dulno.workflow.action.ActionExecutor;
-import com.dulno.workflow.action.ActionResult;
-import com.dulno.workflow.placeholder.PlaceholderDissolve;
-import com.dulno.google.GoogleConfiguration;
-import com.dulno.google.account.GoogleAccountDatabaseTable;
-import com.dulno.google.account.GoogleCredential;
-import com.dulno.google.calendar.GoogleCalendarEventTime;
+import net.taskwolf.workflow.action.ActionExecutor;
+import net.taskwolf.workflow.action.ActionResult;
+import net.taskwolf.workflow.placeholder.PlaceholderDissolve;
+import net.taskwolf.google.GoogleConfiguration;
+import net.taskwolf.google.account.GoogleAccountDatabaseTable;
+import net.taskwolf.google.account.GoogleCredential;
+import net.taskwolf.google.calendar.GoogleCalendarEventTime;
 
 import java.util.List;
 import java.util.Map;
@@ -66,7 +66,7 @@ public final class EventCancelActionExecutor implements ActionExecutor {
     try {
       var service = new Calendar.Builder(GoogleNetHttpTransport.newTrustedTransport(),
         new GsonFactory(), credential)
-        .setApplicationName("Dulno")
+        .setApplicationName("Taskwolf")
         .build();
       var event = service.events().get("primary", eventId).execute();
       event.setStatus("cancelled");

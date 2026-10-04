@@ -1,6 +1,6 @@
-package com.dulno.google.calendar.trigger;
+package net.taskwolf.google.calendar.trigger;
 
-import com.dulno.workflow.WorkflowModule;
+import net.taskwolf.workflow.WorkflowModule;
 import com.google.api.client.googleapis.javanet.GoogleNetHttpTransport;
 import com.google.api.client.json.gson.GsonFactory;
 import com.google.api.client.util.DateTime;
@@ -11,14 +11,14 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Multimap;
 import lombok.RequiredArgsConstructor;
-import com.dulno.core.iterator.AsyncIterator;
-import com.dulno.workflow.trigger.TriggerEntry;
-import com.dulno.google.GoogleConfiguration;
-import com.dulno.google.account.GoogleAccount;
-import com.dulno.google.account.GoogleAccountDatabaseTable;
-import com.dulno.google.account.GoogleCredential;
-import com.dulno.google.calendar.GoogleCalendarEventDatabaseTable;
-import com.dulno.google.calendar.GoogleCalendarEventTime;
+import net.taskwolf.core.iterator.AsyncIterator;
+import net.taskwolf.workflow.trigger.TriggerEntry;
+import net.taskwolf.google.GoogleConfiguration;
+import net.taskwolf.google.account.GoogleAccount;
+import net.taskwolf.google.account.GoogleAccountDatabaseTable;
+import net.taskwolf.google.account.GoogleCredential;
+import net.taskwolf.google.calendar.GoogleCalendarEventDatabaseTable;
+import net.taskwolf.google.calendar.GoogleCalendarEventTime;
 
 import java.util.Collection;
 import java.util.List;
@@ -97,7 +97,7 @@ public final class EventCheckSchedule {
         googleConfiguration.clientSecret(), account).buildCredential();
       return new Calendar.Builder(GoogleNetHttpTransport.newTrustedTransport(),
         new GsonFactory(), credential)
-        .setApplicationName("Dulno")
+        .setApplicationName("Taskwolf")
         .build();
     } catch (Exception ignored) {
       return null;

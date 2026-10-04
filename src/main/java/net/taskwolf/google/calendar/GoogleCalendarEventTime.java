@@ -1,4 +1,4 @@
-package com.dulno.google.calendar;
+package net.taskwolf.google.calendar;
 
 import com.google.api.client.util.DateTime;
 
